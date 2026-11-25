@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-HealthdekhoApplication<healthdekho>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.healthdekho.HealthdekhoApplication",
+            "projectName": "healthdekho",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
