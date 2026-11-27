@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage, PaymentPage, PolicySearchPage, ProductDiscoveryPage } from './pages/WorkspacePages'
 import './App.css'
+import { PolicyRegistrationPage } from './pages/PolicyRegistrationPage'
 
 function AppRoutes() {
   return (
@@ -25,6 +26,14 @@ function AppRoutes() {
         path="/search"
         element={<ProtectedRoute><PolicySearchPage /></ProtectedRoute>}
       />
+      <Route
+  path="/policies/register/:productCode"
+  element={
+    <ProtectedRoute>
+      <PolicyRegistrationPage />
+    </ProtectedRoute>
+  }
+/>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

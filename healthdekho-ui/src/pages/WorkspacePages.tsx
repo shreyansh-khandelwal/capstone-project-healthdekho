@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import api from '../api'
 import { useAuth } from '../auth/useAuth'
 import { AppShell } from '../components/AppShell'
+import { AvailableProductsSection } from '../components/AvailableProductsSection'
 import { formatCurrency, formatDate } from '../dashboard'
 import type { PolicyPage } from '../dashboard'
+import { AiRecommendationsSection } from '../components/AiRecommendationsSection'
 
 export function DashboardPage() {
   const { customer } = useAuth()
@@ -134,7 +136,7 @@ export function DashboardPage() {
                       <td><time dateTime={policy.maturityDate}>{formatDate(policy.maturityDate)}</time></td>
                       <td>{policy.premiumFrequency}</td>
                       <td className="currency-column">{formatCurrency(policy.premiumAmount)}</td>
-                      <td className="currency-column">{formatCurrency(policy.sumInsured)}</td>
+                      <td className="currency-column">{formatCurrency(productSumInsured(policy.sumInsured))}</td>
                       <td>
                         <span className={`status-badge status-${policy.status.toLowerCase()}`}>
                           <span aria-hidden="true">●</span> {policy.status}
@@ -177,8 +179,17 @@ export function DashboardPage() {
           </>
         )}
       </section>
+<br />
+<AiRecommendationsSection />
+
+<br />
+      <AvailableProductsSection />
     </AppShell>
   )
+}
+
+function productSumInsured(amount: number): number {
+  return amount
 }
 
 export function PaymentPage() {
@@ -198,9 +209,7 @@ export function ProductDiscoveryPage() {
     <AppShell>
       <p className="eyebrow">Available cover</p>
       <h1>Product discovery</h1>
-      <div className="summary-card">
-        <p>Browse available insurance products and find cover suited to your needs.</p>
-      </div>
+      <AvailableProductsSection />
     </AppShell>
   )
 }
