@@ -1,12 +1,15 @@
 package com.example.healthdekho;
 
+import com.example.healthdekho.core.enums.CustomerStatus;
+import com.example.healthdekho.core.enums.PolicyType;
 import com.example.healthdekho.entities.Customer;
-import com.example.healthdekho.entities.Policy;
+import com.example.healthdekho.entities.CustomerPolicy;
+import com.example.healthdekho.entities.InsuranceProduct;
 import com.example.healthdekho.repositories.CustomerRepository;
+import com.example.healthdekho.repositories.InsuranceProductRepository;
 import com.example.healthdekho.repositories.PolicyRepository;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,8 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class HealthdekhoApplicationTests {
 
-    private static final String EMAIL = "customer@healthdekho.test";
-    private static final String PASSWORD = "correct horse battery staple";
+    private static final String EMAIL = "customer@gmail.com";
+    private static final String PASSWORD = "password";
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,11 +53,15 @@ class HealthdekhoApplicationTests {
     private PolicyRepository policyRepository;
 
     @Autowired
+    private InsuranceProductRepository insuranceProductRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
         policyRepository.deleteAll();
+        insuranceProductRepository.deleteAll();
         customerRepository.deleteAll();
         customerRepository.save(new Customer(
                 EMAIL,
@@ -62,8 +69,7 @@ class HealthdekhoApplicationTests {
                 "Test Customer",
                 LocalDate.of(1990, 1, 1),
                 null,
-                "ACTIVE",
-                Instant.now()));
+                CustomerStatus.ACTIVE));
     }
 
     @Test
@@ -182,20 +188,19 @@ class HealthdekhoApplicationTests {
                 "Other Customer",
                 LocalDate.of(1988, 6, 12),
                 null,
-                "ACTIVE",
-                Instant.now()));
-        policyRepository.save(new Policy(
+                CustomerStatus.ACTIVE));
+        savePolicy(
                 owner, "POL-Z", "Family Shield", "Health", 12,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31),
-                "Monthly", new BigDecimal("1499.00"), new BigDecimal("500000.00"), "ACTIVE"));
-        policyRepository.save(new Policy(
+                "MONTHLY", new BigDecimal("1499.00"), new BigDecimal("500000.00"), "ACTIVE");
+        CustomerPolicy policyA = savePolicy(
                 owner, "POL-A", "Life Secure", "Life", 240,
                 LocalDate.of(2026, 2, 1), LocalDate.of(2046, 1, 31),
-                "Quarterly", new BigDecimal("4250.00"), new BigDecimal("2500000.00"), "ACTIVE"));
-        policyRepository.save(new Policy(
+                "QUARTERLY", new BigDecimal("4250.00"), new BigDecimal("2500000.00"), "ACTIVE");
+        savePolicy(
                 other, "POL-PRIVATE", "Private Product", "Health", 12,
                 LocalDate.of(2026, 3, 1), LocalDate.of(2027, 2, 28),
-                "Annual", BigDecimal.ONE, BigDecimal.TEN, "ACTIVE"));
+                "YEARLY", BigDecimal.ONE, BigDecimal.TEN, "ACTIVE");
         MockHttpSession session = loginAndSession();
 
         mockMvc.perform(get("/api/v1/dashboard")
@@ -206,11 +211,11 @@ class HealthdekhoApplicationTests {
                 .andExpect(jsonPath("$.policies.length()", is(1)))
                 .andExpect(jsonPath("$.policies[0].policyIdentifier", is("POL-A")))
                 .andExpect(jsonPath("$.policies[0].productName", is("Life Secure")))
-                .andExpect(jsonPath("$.policies[0].policyType", is("Life")))
+                .andExpect(jsonPath("$.policies[0].policyType", is(policyA.getProduct().getPolicyType().name())))
                 .andExpect(jsonPath("$.policies[0].termMonths", is(240)))
                 .andExpect(jsonPath("$.policies[0].startDate", is("2026-02-01")))
                 .andExpect(jsonPath("$.policies[0].maturityDate", is("2046-01-31")))
-                .andExpect(jsonPath("$.policies[0].premiumFrequency", is("Quarterly")))
+                .andExpect(jsonPath("$.policies[0].premiumFrequency", is("QUARTERLY")))
                 .andExpect(jsonPath("$.policies[0].premiumAmount", is(4250.00)))
                 .andExpect(jsonPath("$.policies[0].sumInsured", is(2500000.00)))
                 .andExpect(jsonPath("$.policies[0].status", is("ACTIVE")))
@@ -238,12 +243,11 @@ class HealthdekhoApplicationTests {
                 "Other Customer",
                 LocalDate.of(1988, 6, 12),
                 null,
-                "ACTIVE",
-                Instant.now()));
-        policyRepository.save(new Policy(
+                CustomerStatus.ACTIVE));
+        savePolicy(
                 other, "POL-PRIVATE", "Private Product", "Health", 12,
                 LocalDate.of(2026, 3, 1), LocalDate.of(2027, 2, 28),
-                "Annual", BigDecimal.ONE, BigDecimal.TEN, "ACTIVE"));
+                "YEARLY", BigDecimal.ONE, BigDecimal.TEN, "ACTIVE");
 
         mockMvc.perform(get("/api/v1/policies/POL-PRIVATE").session(loginAndSession()))
                 .andExpect(status().isForbidden())
@@ -257,10 +261,10 @@ class HealthdekhoApplicationTests {
     void dashboardMeetsTheLatencyTargetOnTheAgreedTestDataset() throws Exception {
         Customer owner = customerRepository.findByEmailIgnoreCase(EMAIL).orElseThrow();
         for (int index = 0; index < 20; index++) {
-            policyRepository.save(new Policy(
+            savePolicy(
                     owner, "PERF-%02d".formatted(index), "Performance Policy", "Health", 12,
                     LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31),
-                    "Monthly", BigDecimal.ONE, BigDecimal.TEN, "ACTIVE"));
+                    "MONTHLY", BigDecimal.ONE, BigDecimal.TEN, "ACTIVE");
         }
         MockHttpSession session = loginAndSession();
         mockMvc.perform(get("/api/v1/dashboard").session(session)).andExpect(status().isOk());
@@ -275,6 +279,75 @@ class HealthdekhoApplicationTests {
         org.junit.jupiter.api.Assertions.assertTrue(
                 p95 < 300, "Expected dashboard p95 below 300 ms, observed " + p95 + " ms");
     }
+
+    private CustomerPolicy savePolicy(
+            Customer customer,
+            String policyNumber,
+            String productName,
+            String policyType,
+            int termMonths,
+            LocalDate startDate,
+            LocalDate maturityDate,
+            String premiumFrequency,
+            BigDecimal premiumAmount,
+            BigDecimal sumInsured,
+            String status) {
+        CustomerPolicy policy = new CustomerPolicy(
+                customer, policyNumber, productName, policyType, termMonths,
+                startDate, maturityDate, premiumFrequency, premiumAmount, sumInsured, status);
+
+        InsuranceProduct product = policy.getProduct();
+        if (product != null && product.getProductId() == null) {
+            String code = (product.getProductCode() == null || product.getProductCode().isBlank())
+                    ? "PROD-" + Math.abs(productName.hashCode())
+                    : product.getProductCode();
+            product.setProductCode(code);
+
+            InsuranceProduct managedProduct = insuranceProductRepository.findAll().stream()
+                    .filter(existing -> code.equals(existing.getProductCode()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        
+                            product.setPolicyName(productName);
+                        
+                        if (product.getPolicyType() == null) {
+                            product.setPolicyType(resolvePolicyType(policyType));
+                        }
+                        if (product.getTermMonths() == null) {
+                            product.setTermMonths(termMonths);
+                        }
+                        if (product.getPremiumFrequency() == null) {
+                            product.setPremiumFrequency(policy.getPremiumFrequency());
+                        }
+                        if (product.getPremiumAmount() == null) {
+                            product.setPremiumAmount(premiumAmount);
+                        }
+                        if (product.getSumInsured() == null) {
+                            product.setSumInsured(sumInsured);
+                        }
+                        product.setMinEntryAge(18);
+                        product.setMaxEntryAge(65);
+                        product.setActive(true);
+                        return insuranceProductRepository.save(product);
+                    });
+            policy.setProduct(managedProduct);
+        }
+
+        return policyRepository.save(policy);
+    }
+
+    private PolicyType resolvePolicyType(String rawType) {
+    if (rawType == null || rawType.isBlank()) {
+        return PolicyType.HEALTH;
+    }
+    return switch (rawType.trim().toUpperCase()) {
+        case "LIFE", "TERM" -> PolicyType.TERM;
+        case "HEALTH" -> PolicyType.HEALTH;
+        case "RETIREMENT" -> PolicyType.RETIREMENT;
+        case "ENDOWMENT" -> PolicyType.ENDOWMENT;
+        default -> throw new IllegalArgumentException("Unknown PolicyType: " + rawType);
+    };
+}
 
     private MockHttpSession loginAndSession() throws Exception {
         return (MockHttpSession) login(EMAIL, PASSWORD).andReturn().getRequest().getSession(false);

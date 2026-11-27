@@ -1,4 +1,4 @@
-package com.example.healthdekho.error;
+package com.example.healthdekho.core.error;
 
 import java.time.Instant;
 import java.util.List;
@@ -42,6 +42,7 @@ public class GlobalExceptionHandler {
         String message = resolved == HttpStatus.UNAUTHORIZED ? "Authentication required" : resolved.getReasonPhrase();
         return ResponseEntity.status(resolved).body(error(resolved, message));
     }
+    
 
     private ApiError error(HttpStatus status, String message) {
         return new ApiError(Instant.now(), status.value(), status.getReasonPhrase(), message, List.of());

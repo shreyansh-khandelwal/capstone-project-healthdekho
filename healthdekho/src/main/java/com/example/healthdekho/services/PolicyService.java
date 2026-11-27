@@ -3,7 +3,8 @@ package com.example.healthdekho.services;
 import com.example.healthdekho.DTO.PolicyPageResponse;
 import com.example.healthdekho.DTO.PolicyResponse;
 import com.example.healthdekho.entities.Customer;
-import com.example.healthdekho.entities.Policy;
+import com.example.healthdekho.entities.CustomerPolicy;
+
 import com.example.healthdekho.repositories.PolicyRepository;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -23,9 +24,9 @@ public class PolicyService {
     }
 
     public PolicyPageResponse dashboard(Customer customer, int page, int size) {
-        Page<Policy> policies = policyRepository.findByCustomerId(
-                customer.getId(),
-                PageRequest.of(page, size, Sort.by("policyIdentifier").ascending()));
+        Page<CustomerPolicy> policies = policyRepository.findByCustomerCustomerId(
+                customer.getCustomerId(),
+                PageRequest.of(page, size, Sort.by("policyNumber").ascending()));
         List<PolicyResponse> responses = policies.getContent().stream()
                 .map(PolicyResponse::from)
                 .toList();
@@ -39,10 +40,10 @@ public class PolicyService {
                 policies.isLast());
     }
 
-    public Policy ownedPolicy(Customer customer, String policyIdentifier) {
-        Policy policy = policyRepository.findByPolicyIdentifier(policyIdentifier)
+    public CustomerPolicy ownedPolicy(Customer customer, String policyIdentifier) {
+        CustomerPolicy policy = policyRepository.findByPolicyNumber(policyIdentifier)
                 .orElseThrow(PolicyAccessDeniedException::new);
-        if (!policy.getCustomer().getId().equals(customer.getId())) {
+        if (!policy.getCustomer().getCustomerId().equals(customer.getCustomerId())) {
             throw new PolicyAccessDeniedException();
         }
         return policy;

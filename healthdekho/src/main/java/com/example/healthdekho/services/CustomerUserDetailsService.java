@@ -22,7 +22,7 @@ public class CustomerUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Customer customer = customerRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid email or password"));
-        boolean active = "ACTIVE".equals(customer.getStatus());
+        boolean active = "ACTIVE".equals(customer.getStatus().toString());
         return User.withUsername(customer.getEmail())
                 .password(customer.getPasswordHash())
                 .disabled(!active)

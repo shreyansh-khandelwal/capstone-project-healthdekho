@@ -1,4 +1,4 @@
-package com.example.healthdekho.error;
+package com.example.healthdekho.core.error;
 
 import java.time.Instant;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.healthdekho.error;
+package com.example.healthdekho.core.error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
