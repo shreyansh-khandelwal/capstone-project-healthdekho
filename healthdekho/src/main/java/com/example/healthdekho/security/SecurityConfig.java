@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/v1/auth/login","/api/v1/auth/me", "/api/v1/auth/csrf", "/actuator/**").permitAll()
+                        .requestMatchers("/api/v1/auth/login","/api/v1/auth/register","/api/v1/auth/me", "/api/v1/auth/csrf", "/actuator/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .exceptionHandling(exceptions -> exceptions

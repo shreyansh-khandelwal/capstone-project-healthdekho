@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage'
 import { DashboardPage, PaymentPage, PolicySearchPage, ProductDiscoveryPage } from './pages/WorkspacePages'
 import './App.css'
 import { PolicyRegistrationPage } from './pages/PolicyRegistrationPage'
+import { RegisterPage } from './pages/RegisterPage'
 
 function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ function AppRoutes() {
         path="/search"
         element={<ProtectedRoute><PolicySearchPage /></ProtectedRoute>}
       />
+      <Route path="/register" element={<RegisterPage />} />
       <Route
   path="/policies/register/:productCode"
   element={

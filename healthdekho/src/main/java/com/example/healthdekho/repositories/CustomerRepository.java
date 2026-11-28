@@ -7,4 +7,5 @@ import com.example.healthdekho.entities.Customer;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(String email);
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 
 type FieldErrors = {
@@ -125,6 +125,9 @@ export function LoginPage() {
             {isSubmitting ? 'Signing in…' : 'Sign in securely'}
           </button>
         </form>
+        <p>
+          New to HealthDekho? <Link to="/register">Create an account</Link>
+        </p>
 
         <p className="security-note">Your credentials are encrypted in transit and are never displayed or stored by this site.</p>
       </section>
